@@ -9,16 +9,18 @@ import { UserContextProvider } from "./contexts/userContext";
 export default function App() {
   return (
     <PagesContainer>
-      <BrowserRouter>
-        <UserContextProvider>
+      <UserContextProvider>
+        <BrowserRouter>
+
           <Routes>
             <Route path="/" element={<SignInPage />} />
             <Route path="/cadastro" element={<SignUpPage />} />
             <Route path="/home" element={<HomePage />} />
             <Route path="/nova-transacao/:tipo" element={<TransactionsPage />} />
           </Routes>
-        </UserContextProvider>
-      </BrowserRouter>
+
+        </BrowserRouter>
+      </UserContextProvider>
     </PagesContainer>
   )
 }

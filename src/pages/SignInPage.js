@@ -10,21 +10,22 @@ export default function SignInPage() {
   const url = process.env.REACT_APP_BASE_URL
   const [form, setForm] = useState({ email: "", password: "" })
   const [isDisabled, setIsDisabled] = useState(false)
-  const { token, setToken } = useContext(UserContext)
+  const { token, setToken, name, setName } = useContext(UserContext)
   function handleChange(event) {
     setForm({ ...form, [event.target.name]: event.target.value })
-    console.log(form)
   }
-  function signUp(e) {
+  function signIn(e) {
     e.preventDefault()
     const promise = axios.post(`${url}/sign-in`, form)
     setIsDisabled(true)
     promise.then((a) => {
       navigate("/home")
       setIsDisabled(false)
-      setToken(a.data)
-      localStorage.setItem("token", a.data)
-      console.log(a.data)
+      setToken(a.data.token)
+      setName(a.data.name)
+      localStorage.setItem("token", a.data.token)
+      console.log("name", a.data)
+      console.log("localstorage", localStorage.getItem("token"))
     })
     promise.catch((a) => {
       alert(a.response.data.message)
@@ -34,7 +35,7 @@ export default function SignInPage() {
   }
   return (
     <SingInContainer>
-      <form onSubmit={signUp}>
+      <form onSubmit={signIn}>
         <MyWalletLogo />
         <input placeholder="E-mail" type="email" disabled={isDisabled} name={"email"} onChange={handleChange} />
         <input placeholder="Senha" type="password" autoComplete="new-password" disabled={isDisabled} name={"password"} onChange={handleChange} />

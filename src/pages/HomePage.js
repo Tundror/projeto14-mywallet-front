@@ -9,68 +9,89 @@ import { AiOutlineMinusCircle, AiOutlinePlusCircle } from "react-icons/ai"
 export default function HomePage() {
   const navigate = useNavigate()
   const url = process.env.REACT_APP_BASE_URL
-  const { token, setToken, transactionList, setTransactionList } = useContext(UserContext)
+  const { token, setToken, transactionList, setTransactionList, whatType, setWhatType, name } = useContext(UserContext)
   const [balance, setBalance] = useState(0)
   useEffect(() => {
+    if(!localStorage.getItem("token")){
+      alert("Usuario sem login")
+      navigate("/")
+    }
     setToken(localStorage.getItem("token"))
     const config = {
       headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
     }
     const promise = axios.get(`${url}/transaction`, config)
     promise.then((a) => {
-      setTransactionList(a.data)
+      const array = a.data
+      const reverseArray = array.reverse()
+      setTransactionList(reverseArray)
     })
-    promise.catch((a) => console.log("erro", a.message))
+    promise.catch((a) => {
+      console.log("erro", a.message)
+    })
   }, [])
 
   useEffect(() => {
     const array = transactionList
-    let finalValue=0
+    let finalValue = 0
     array.forEach((a) => {
       if (a.type === "in") {
         finalValue = finalValue + a.value
         setBalance(finalValue.toFixed(2))
-        console.log(finalValue)
       }
       else if (a.type === "out") {
         finalValue = finalValue - a.value
         setBalance(finalValue.toFixed(2))
-        console.log(finalValue)
       }
     })
   }, [transactionList])
 
+  function typeIn() {
+    setWhatType("in")
+    navigate("/nova-transacao/in")
+  }
+  function typeOut() {
+    setWhatType("out")
+    navigate("/nova-transacao/out")
+  }
+
+  function logout() {
+    localStorage.removeItem("token")
+    navigate("/")
+  }
+
   return (
     <HomeContainer>
       <Header>
-        <h1>Olá, Fulano</h1>
-        <BiExit />
+        <h1>{`Olá, ${name}`}</h1>
+        <BiExit onClick={logout} />
       </Header>
       <TransactionsContainer>
-        <ul>
-          {transactionList.map((a) => <DisplayTransactions
-            balance={balance}
-            setBalance={setBalance}
-            key={a._id}
-            value={a.value}
-            description={a.description}
-            type={a.type}
-            date={a.date} />)}
-        </ul>
-
-        <article>
+        <ListContainer>
+          <ul>
+            {transactionList.map((a) => <DisplayTransactions
+              balance={balance}
+              setBalance={setBalance}
+              key={a._id}
+              value={a.value}
+              description={a.description}
+              type={a.type}
+              date={a.date} />)}
+          </ul>
+        </ListContainer>
+        <SaldoContainer>
           <strong>Saldo</strong>
           <Value color={balance >= 0 ? "positivo" : "negativo"}>{balance}</Value>
-        </article>
+        </SaldoContainer>
       </TransactionsContainer>
 
 
       <ButtonsContainer>
-        <button>
+        <button onClick={typeIn}>
           <AiOutlinePlusCircle />
           <p>Nova <br /> entrada</p>
         </button>
-        <button>
+        <button onClick={typeOut}>
           <AiOutlineMinusCircle />
           <p>Nova <br />saída</p>
         </button>
@@ -110,14 +131,19 @@ const Header = styled.header`
 `
 const TransactionsContainer = styled.article`
   flex-grow: 1;
+  position:relative;
   background-color: #fff;
   color: #000;
   border-radius: 5px;
   padding: 16px;
   display: flex;
+  overflow-y: auto;
   flex-direction: column;
   justify-content: space-between;
   article {
+    position: absolute;
+    bottom: 10px;
+    left: 16px;
     display: flex;
     justify-content: space-between;   
     strong {
@@ -126,6 +152,35 @@ const TransactionsContainer = styled.article`
     }
   }
 `
+
+const ListContainer = styled.div`
+  overflow-y:scroll;
+  margin-bottom:16px;
+  article {
+    position: absolute;
+    bottom: 10px;
+    left: 16px;
+    display: flex;
+    justify-content: space-evenly;   
+    strong {
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+  }
+`
+
+const SaldoContainer = styled.div`
+  position: absolute;
+  bottom: 10px;
+  left: 16px;
+  display: flex;
+  justify-content: space-between;   
+  strong {
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+`
+
 const ButtonsContainer = styled.section`
   margin-top: 15px;
   margin-bottom: 0;
@@ -149,6 +204,7 @@ const Value = styled.div`
   font-size: 16px;
   text-align: right;
   color: ${(props) => (props.color === "positivo" ? "green" : "red")};
+  margin-left: 10px;
 `
 const ListItemContainer = styled.li`
   display: flex;
