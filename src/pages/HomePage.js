@@ -1,37 +1,66 @@
 import styled from "styled-components"
+import { Link, useNavigate } from "react-router-dom"
+import { useEffect, useState, useContext } from "react"
+import axios from 'axios';
+import { UserContext } from "../contexts/userContext"
 import { BiExit } from "react-icons/bi"
 import { AiOutlineMinusCircle, AiOutlinePlusCircle } from "react-icons/ai"
 
 export default function HomePage() {
+  const navigate = useNavigate()
+  const url = process.env.REACT_APP_BASE_URL
+  const { token, setToken, transactionList, setTransactionList } = useContext(UserContext)
+  const [balance, setBalance] = useState(0)
+  useEffect(() => {
+    setToken(localStorage.getItem("token"))
+    const config = {
+      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+    }
+    const promise = axios.get(`${url}/transaction`, config)
+    promise.then((a) => {
+      setTransactionList(a.data)
+    })
+    promise.catch((a) => console.log("erro", a.message))
+  }, [])
+
+  useEffect(() => {
+    const array = transactionList
+    let finalValue=0
+    array.forEach((a) => {
+      if (a.type === "in") {
+        finalValue = finalValue + a.value
+        setBalance(finalValue.toFixed(2))
+        console.log(finalValue)
+      }
+      else if (a.type === "out") {
+        finalValue = finalValue - a.value
+        setBalance(finalValue.toFixed(2))
+        console.log(finalValue)
+      }
+    })
+  }, [transactionList])
+
   return (
     <HomeContainer>
       <Header>
         <h1>Olá, Fulano</h1>
         <BiExit />
       </Header>
-
       <TransactionsContainer>
         <ul>
-          <ListItemContainer>
-            <div>
-              <span>30/11</span>
-              <strong>Almoço mãe</strong>
-            </div>
-            <Value color={"negativo"}>120,00</Value>
-          </ListItemContainer>
-
-          <ListItemContainer>
-            <div>
-              <span>15/11</span>
-              <strong>Salário</strong>
-            </div>
-            <Value color={"positivo"}>3000,00</Value>
-          </ListItemContainer>
+          {transactionList.map((a) => <DisplayTransactions
+            balance={balance}
+            setBalance={setBalance}
+            key={a._id}
+            value={a.value}
+            description={a.description}
+            type={a.type}
+            date={a.date} />)}
         </ul>
 
         <article>
           <strong>Saldo</strong>
-          <Value color={"positivo"}>2880,00</Value>
+          <Value color={balance >= 0 ? "positivo" : "negativo"}>{balance}</Value>
         </article>
       </TransactionsContainer>
 
@@ -48,6 +77,20 @@ export default function HomePage() {
       </ButtonsContainer>
 
     </HomeContainer>
+  )
+}
+
+function DisplayTransactions(props) {
+  const { value, description, type, date } = props
+
+  return (
+    <ListItemContainer>
+      <div>
+        <span>{date}</span>
+        <strong>{description}</strong>
+      </div>
+      <Value color={type === "in" ? "positivo" : "negativo"}>{value}</Value>
+    </ListItemContainer>
   )
 }
 

@@ -23,6 +23,7 @@ export default function SignInPage() {
       navigate("/home")
       setIsDisabled(false)
       setToken(a.data)
+      localStorage.setItem("token", a.data)
       console.log(a.data)
     })
     promise.catch((a) => {
@@ -36,7 +37,7 @@ export default function SignInPage() {
       <form onSubmit={signUp}>
         <MyWalletLogo />
         <input placeholder="E-mail" type="email" disabled={isDisabled} name={"email"} onChange={handleChange} />
-        <input placeholder="Senha" type="password" autocomplete="new-password" disabled={isDisabled} name={"password"} onChange={handleChange} />
+        <input placeholder="Senha" type="password" autoComplete="new-password" disabled={isDisabled} name={"password"} onChange={handleChange} />
         <button disabled={isDisabled} type="submit">Entrar</button>
       </form>
 
